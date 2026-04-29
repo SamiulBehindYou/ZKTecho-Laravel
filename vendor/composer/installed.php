@@ -1,9 +1,9 @@
 <?php return array(
     'root' => array(
         'name' => 'laravel/laravel',
-        'pretty_version' => 'v13.4.0',
-        'version' => '13.4.0.0',
-        'reference' => null,
+        'pretty_version' => 'dev-main',
+        'version' => 'dev-main',
+        'reference' => '3b0a1952ff3b622f426fc6e93d45f4f2bfe03f39',
         'type' => 'project',
         'install_path' => __DIR__ . '/../../',
         'aliases' => array(),
@@ -382,6 +382,15 @@
                 0 => 'v13.7.0',
             ),
         ),
+        'jmrashed/zkteco' => array(
+            'pretty_version' => '1.2.0',
+            'version' => '1.2.0.0',
+            'reference' => '4672f6769a760e28cd10c4721bf418af28bed970',
+            'type' => 'library',
+            'install_path' => __DIR__ . '/../jmrashed/zkteco',
+            'aliases' => array(),
+            'dev_requirement' => false,
+        ),
         'kodova/hamcrest-php' => array(
             'dev_requirement' => true,
             'replaced' => array(
@@ -407,9 +416,9 @@
             'dev_requirement' => false,
         ),
         'laravel/laravel' => array(
-            'pretty_version' => 'v13.4.0',
-            'version' => '13.4.0.0',
-            'reference' => null,
+            'pretty_version' => 'dev-main',
+            'version' => 'dev-main',
+            'reference' => '3b0a1952ff3b622f426fc6e93d45f4f2bfe03f39',
             'type' => 'project',
             'install_path' => __DIR__ . '/../../',
             'aliases' => array(),

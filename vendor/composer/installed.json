@@ -1281,6 +1281,53 @@
             "install-path": "../hamcrest/hamcrest-php"
         },
         {
+            "name": "jmrashed/zkteco",
+            "version": "1.2.0",
+            "version_normalized": "1.2.0.0",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/jmrashed/zkteco.git",
+                "reference": "4672f6769a760e28cd10c4721bf418af28bed970"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/jmrashed/zkteco/zipball/4672f6769a760e28cd10c4721bf418af28bed970",
+                "reference": "4672f6769a760e28cd10c4721bf418af28bed970",
+                "shasum": ""
+            },
+            "require": {
+                "php": "^8.0"
+            },
+            "require-dev": {
+                "orchestra/testbench": "^6.0",
+                "phpunit/phpunit": "^10.0"
+            },
+            "time": "2025-10-01T12:47:08+00:00",
+            "type": "library",
+            "installation-source": "dist",
+            "autoload": {
+                "psr-4": {
+                    "Jmrashed\\Zkteco\\": "src"
+                }
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "MIT"
+            ],
+            "authors": [
+                {
+                    "name": "Md Rasheduzzaman",
+                    "email": "jmrashed@gmail.com"
+                }
+            ],
+            "description": "ZKTeco Package For Laravel. This package provides seamless integration with ZKTeco devices within Laravel applications, enabling communication with attendance devices such as fingerprint, face recognition, or RFID using UDP protocol.",
+            "support": {
+                "issues": "https://github.com/jmrashed/zkteco/issues",
+                "source": "https://github.com/jmrashed/zkteco/tree/v1.2.0"
+            },
+            "install-path": "../jmrashed/zkteco"
+        },
+        {
             "name": "laravel/agent-detector",
             "version": "v2.0.1",
             "version_normalized": "2.0.1.0",

@@ -136,6 +136,10 @@ class ComposerStaticInit12a93e9ee58f99b3ee9ac9b5d35d65e5
             'Laravel\\Pail\\' => 13,
             'Laravel\\AgentDetector\\' => 22,
         ),
+        'J' => 
+        array (
+            'Jmrashed\\Zkteco\\' => 16,
+        ),
         'I' => 
         array (
             'Illuminate\\Support\\' => 19,
@@ -435,6 +439,10 @@ class ComposerStaticInit12a93e9ee58f99b3ee9ac9b5d35d65e5
         'Laravel\\AgentDetector\\' => 
         array (
             0 => __DIR__ . '/..' . '/laravel/agent-detector/src',
+        ),
+        'Jmrashed\\Zkteco\\' => 
+        array (
+            0 => __DIR__ . '/..' . '/jmrashed/zkteco/src',
         ),
         'Illuminate\\Support\\' => 
         array (
@@ -3058,6 +3066,24 @@ class ComposerStaticInit12a93e9ee58f99b3ee9ac9b5d35d65e5
         'Illuminate\\View\\ViewFinderInterface' => __DIR__ . '/..' . '/laravel/framework/src/Illuminate/View/ViewFinderInterface.php',
         'Illuminate\\View\\ViewName' => __DIR__ . '/..' . '/laravel/framework/src/Illuminate/View/ViewName.php',
         'Illuminate\\View\\ViewServiceProvider' => __DIR__ . '/..' . '/laravel/framework/src/Illuminate/View/ViewServiceProvider.php',
+        'Jmrashed\\Zkteco\\Lib\\Helper\\Attendance' => __DIR__ . '/..' . '/jmrashed/zkteco/src/Lib/Helper/Attendance.php',
+        'Jmrashed\\Zkteco\\Lib\\Helper\\Connect' => __DIR__ . '/..' . '/jmrashed/zkteco/src/Lib/Helper/Connect.php',
+        'Jmrashed\\Zkteco\\Lib\\Helper\\Device' => __DIR__ . '/..' . '/jmrashed/zkteco/src/Lib/Helper/Device.php',
+        'Jmrashed\\Zkteco\\Lib\\Helper\\EventMonitor' => __DIR__ . '/..' . '/jmrashed/zkteco/src/Lib/Helper/EventMonitor.php',
+        'Jmrashed\\Zkteco\\Lib\\Helper\\Face' => __DIR__ . '/..' . '/jmrashed/zkteco/src/Lib/Helper/Face.php',
+        'Jmrashed\\Zkteco\\Lib\\Helper\\Fingerprint' => __DIR__ . '/..' . '/jmrashed/zkteco/src/Lib/Helper/Fingerprint.php',
+        'Jmrashed\\Zkteco\\Lib\\Helper\\Os' => __DIR__ . '/..' . '/jmrashed/zkteco/src/Lib/Helper/Os.php',
+        'Jmrashed\\Zkteco\\Lib\\Helper\\Pin' => __DIR__ . '/..' . '/jmrashed/zkteco/src/Lib/Helper/Pin.php',
+        'Jmrashed\\Zkteco\\Lib\\Helper\\Platform' => __DIR__ . '/..' . '/jmrashed/zkteco/src/Lib/Helper/Platform.php',
+        'Jmrashed\\Zkteco\\Lib\\Helper\\SerialNumber' => __DIR__ . '/..' . '/jmrashed/zkteco/src/Lib/Helper/SerialNumber.php',
+        'Jmrashed\\Zkteco\\Lib\\Helper\\Ssr' => __DIR__ . '/..' . '/jmrashed/zkteco/src/Lib/Helper/Ssr.php',
+        'Jmrashed\\Zkteco\\Lib\\Helper\\Time' => __DIR__ . '/..' . '/jmrashed/zkteco/src/Lib/Helper/Time.php',
+        'Jmrashed\\Zkteco\\Lib\\Helper\\User' => __DIR__ . '/..' . '/jmrashed/zkteco/src/Lib/Helper/User.php',
+        'Jmrashed\\Zkteco\\Lib\\Helper\\Util' => __DIR__ . '/..' . '/jmrashed/zkteco/src/Lib/Helper/Util.php',
+        'Jmrashed\\Zkteco\\Lib\\Helper\\Version' => __DIR__ . '/..' . '/jmrashed/zkteco/src/Lib/Helper/Version.php',
+        'Jmrashed\\Zkteco\\Lib\\Helper\\WorkCode' => __DIR__ . '/..' . '/jmrashed/zkteco/src/Lib/Helper/WorkCode.php',
+        'Jmrashed\\Zkteco\\Lib\\ZKTeco' => __DIR__ . '/..' . '/jmrashed/zkteco/src/Lib/ZKTeco.php',
+        'Jmrashed\\Zkteco\\Providers\\ZktecoServiceProvider' => __DIR__ . '/..' . '/jmrashed/zkteco/src/Providers/ZktecoServiceProvider.php',
         'Laravel\\AgentDetector\\AgentDetector' => __DIR__ . '/..' . '/laravel/agent-detector/src/AgentDetector.php',
         'Laravel\\AgentDetector\\AgentResult' => __DIR__ . '/..' . '/laravel/agent-detector/src/AgentResult.php',
         'Laravel\\AgentDetector\\KnownAgent' => __DIR__ . '/..' . '/laravel/agent-detector/src/KnownAgent.php',
