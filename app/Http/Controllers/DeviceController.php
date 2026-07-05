@@ -89,11 +89,16 @@ class DeviceController extends Controller
 
     protected function validated(Request $request, ?Device $device = null): array
     {
-        return $request->validate([
+        $data = $request->validate([
             'name' => ['required', 'string', 'max:255'],
             'ip' => ['required', 'ip'],
-            'port' => ['required', 'integer', 'between:1,65535'],
+            'port' => ['nullable', 'integer', 'between:1,65535'],
             'is_active' => ['boolean'],
-        ]) + ['is_active' => $request->boolean('is_active')];
+        ]);
+
+        $data['port'] = $data['port'] ?? 4370;
+        $data['is_active'] = $request->boolean('is_active');
+
+        return $data;
     }
 }

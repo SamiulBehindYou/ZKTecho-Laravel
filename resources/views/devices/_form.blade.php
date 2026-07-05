@@ -17,10 +17,12 @@
             <p class="mt-1 text-xs text-gray-500">Find it on the device under Menu → Comm → Ethernet.</p>
         </div>
         <div>
-            <label for="port" class="mb-1 block text-sm font-medium">Port</label>
-            <input type="number" name="port" id="port" required min="1" max="65535"
-                   value="{{ old('port', $device->port ?? 4370) }}"
+            <label for="port" class="mb-1 block text-sm font-medium">Port <span class="font-normal text-gray-400">(optional)</span></label>
+            <input type="number" name="port" id="port" min="1" max="65535"
+                   value="{{ old('port', $device->port ?? '') }}"
+                   placeholder="4370"
                    class="w-full rounded border border-gray-300 px-3 py-2 text-sm focus:border-indigo-500 focus:outline-none">
+            <p class="mt-1 text-xs text-gray-500">Defaults to 4370.</p>
         </div>
     </div>
 
