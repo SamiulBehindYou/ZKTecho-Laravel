@@ -63,6 +63,7 @@
                         <th class="px-4 py-3">Punch</th>
                         <th class="px-4 py-3">Verified by</th>
                         <th class="px-4 py-3">Device</th>
+                        <th class="px-4 py-3">Pushed</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -78,6 +79,13 @@
                             </td>
                             <td class="px-4 py-3">{{ $log->state_name }}</td>
                             <td class="px-4 py-3">{{ $log->device->name }}</td>
+                            <td class="px-4 py-3">
+                                @if ($log->pushed_at)
+                                    <span class="rounded bg-green-100 px-2 py-0.5 text-xs text-green-700" title="{{ $log->pushed_at }}">Yes</span>
+                                @else
+                                    <span class="rounded bg-gray-100 px-2 py-0.5 text-xs text-gray-500">Pending</span>
+                                @endif
+                            </td>
                         </tr>
                     @endforeach
                 </tbody>

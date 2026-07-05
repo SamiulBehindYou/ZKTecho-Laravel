@@ -3,6 +3,7 @@
 use App\Http\Controllers\AttendanceController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\DeviceController;
+use App\Http\Controllers\SettingsController;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', [DashboardController::class, 'index'])->name('dashboard');
@@ -14,3 +15,8 @@ Route::post('devices/{device}/sync-users', [DeviceController::class, 'syncUsers'
 
 Route::get('attendance', [AttendanceController::class, 'index'])->name('attendance.index');
 Route::post('attendance/sync', [AttendanceController::class, 'sync'])->name('attendance.sync');
+
+Route::get('settings', [SettingsController::class, 'edit'])->name('settings.edit');
+Route::put('settings', [SettingsController::class, 'update'])->name('settings.update');
+Route::post('settings/test', [SettingsController::class, 'test'])->name('settings.test');
+Route::post('settings/push-now', [SettingsController::class, 'pushNow'])->name('settings.push-now');

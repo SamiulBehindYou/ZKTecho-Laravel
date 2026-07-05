@@ -2,8 +2,10 @@
 
 namespace App\Http\Controllers;
 
+use App\Jobs\PushAttendanceToDashboard;
 use App\Models\Attendance;
 use App\Models\Device;
+use App\Services\DashboardPushService;
 use App\Services\ZktecoService;
 use Illuminate\Http\Request;
 use Throwable;
@@ -46,7 +48,7 @@ class AttendanceController extends Controller
     /**
      * Pull new attendance logs from one device, or from every active device.
      */
-    public function sync(Request $request, ZktecoService $zkteco)
+    public function sync(Request $request, ZktecoService $zkteco, DashboardPushService $pusher)
     {
         $request->validate(['device_id' => ['nullable', 'integer', 'exists:devices,id']]);
 
@@ -69,6 +71,10 @@ class AttendanceController extends Controller
                 $failures++;
                 $messages[] = "{$device->name}: {$e->getMessage()}";
             }
+        }
+
+        if ($failures < $devices->count() && $pusher->enabled() && $pusher->configured() && $pusher->pendingCount() > 0) {
+            PushAttendanceToDashboard::dispatch();
         }
 
         $summary = implode(' | ', $messages);

@@ -31,12 +31,14 @@ class Attendance extends Model
         'state',
         'type',
         'punched_at',
+        'pushed_at',
     ];
 
     protected function casts(): array
     {
         return [
             'punched_at' => 'datetime',
+            'pushed_at' => 'datetime',
         ];
     }
 
