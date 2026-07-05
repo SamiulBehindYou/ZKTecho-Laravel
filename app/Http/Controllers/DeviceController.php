@@ -96,7 +96,7 @@ class DeviceController extends Controller
             'is_active' => ['boolean'],
         ]);
 
-        $data['port'] = $data['port'] ?? 4370;
+        $data['port'] = $data['port'] ?? null;
         $data['is_active'] = $request->boolean('is_active');
 
         return $data;

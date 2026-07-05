@@ -142,11 +142,13 @@ class ZktecoService
             throw new RuntimeException('The PHP sockets extension is not enabled.');
         }
 
-        $zk = new ZKTeco($device->ip, (int) $device->port);
+        $port = (int) ($device->port ?: 4370);
+
+        $zk = new ZKTeco($device->ip, $port);
 
         if (! $zk->connect()) {
             throw new RuntimeException(
-                "Could not reach the device at {$device->ip}:{$device->port}. ".
+                "Could not reach the device at {$device->ip}:{$port}. ".
                 'Check that it is powered on and on the same network.'
             );
         }

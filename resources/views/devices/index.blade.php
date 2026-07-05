@@ -32,7 +32,7 @@
                     @foreach ($devices as $device)
                         <tr class="border-b last:border-0">
                             <td class="px-4 py-3 font-medium">{{ $device->name }}</td>
-                            <td class="px-4 py-3">{{ $device->ip }}:{{ $device->port }}</td>
+                            <td class="px-4 py-3">{{ $device->ip }}{{ $device->port ? ':'.$device->port : '' }}</td>
                             <td class="px-4 py-3">{{ $device->serial_number ?? '—' }}</td>
                             <td class="px-4 py-3">
                                 <a href="{{ route('devices.users', $device) }}" class="text-indigo-600 hover:underline">{{ $device->users_count }}</a>
