@@ -65,6 +65,13 @@ class AttendanceController extends Controller
 
         foreach ($devices as $device) {
             try {
+                // Keep names in sync so attendance rows can be matched to users.
+                try {
+                    $zkteco->syncUsers($device);
+                } catch (Throwable) {
+                    // A failed user sync should not block pulling attendance logs.
+                }
+
                 $result = $zkteco->syncAttendance($device);
                 $messages[] = "{$device->name}: {$result['new']} new of {$result['fetched']} log(s)";
             } catch (Throwable $e) {
