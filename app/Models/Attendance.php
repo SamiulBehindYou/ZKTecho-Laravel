@@ -12,7 +12,11 @@ class Attendance extends Model
         0 => 'Password',
         1 => 'Fingerprint',
         2 => 'Card',
+        255 => 'Manual',
     ];
+
+    /** State value used for entries added by hand in this app. */
+    public const STATE_MANUAL = 255;
 
     /** Punch type (ZKTeco "type"). */
     public const TYPES = [

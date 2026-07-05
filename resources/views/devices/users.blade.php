@@ -6,7 +6,7 @@
     <div class="mb-6 flex items-center justify-between">
         <div>
             <h1 class="text-2xl font-semibold">{{ $device->name }} — enrolled users</h1>
-            <p class="text-sm text-gray-500">{{ $device->ip }}:{{ $device->port }}</p>
+            <p class="text-sm text-gray-500">{{ $device->ip }}{{ $device->port ? ':'.$device->port : '' }}</p>
         </div>
         <form method="POST" action="{{ route('devices.sync-users', $device) }}">
             @csrf

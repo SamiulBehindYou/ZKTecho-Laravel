@@ -5,8 +5,10 @@ namespace App\Http\Controllers;
 use App\Jobs\PushAttendanceToDashboard;
 use App\Models\Attendance;
 use App\Models\Device;
+use App\Models\DeviceUser;
 use App\Services\DashboardPushService;
 use App\Services\ZktecoService;
+use Illuminate\Database\UniqueConstraintViolationException;
 use Illuminate\Http\Request;
 use Throwable;
 
@@ -43,6 +45,59 @@ class AttendanceController extends Controller
         $devices = Device::orderBy('name')->get();
 
         return view('attendance.index', compact('logs', 'devices', 'filters'));
+    }
+
+    /**
+     * Show the form for adding an attendance entry by hand.
+     */
+    public function create(Request $request)
+    {
+        $users = DeviceUser::with('device')
+            ->orderBy('name')
+            ->orderBy('userid')
+            ->get();
+
+        return view('attendance.create', [
+            'users' => $users,
+            'types' => Attendance::TYPES,
+            'selectedUserId' => $request->integer('user_id') ?: null,
+        ]);
+    }
+
+    /**
+     * Store a manual attendance entry. It is queued for the dashboard
+     * push exactly like a punch synced from a device.
+     */
+    public function store(Request $request, DashboardPushService $pusher)
+    {
+        $data = $request->validate([
+            'device_user_id' => ['required', 'integer', 'exists:device_users,id'],
+            'type' => ['required', 'integer', 'in:'.implode(',', array_keys(Attendance::TYPES))],
+            'punched_at' => ['required', 'date', 'before_or_equal:now'],
+        ]);
+
+        $user = DeviceUser::with('device')->findOrFail($data['device_user_id']);
+
+        try {
+            Attendance::create([
+                'device_id' => $user->device_id,
+                'uid' => $user->uid,
+                'userid' => $user->userid,
+                'state' => Attendance::STATE_MANUAL,
+                'type' => $data['type'],
+                'punched_at' => $data['punched_at'],
+            ]);
+        } catch (UniqueConstraintViolationException) {
+            return back()->withInput()->with('error', 'An identical entry already exists for this user at that time.');
+        }
+
+        if ($pusher->enabled() && $pusher->configured()) {
+            PushAttendanceToDashboard::dispatch();
+        }
+
+        return redirect()
+            ->route('attendance.index', ['q' => $user->userid])
+            ->with('success', "Manual entry added for {$user->name} ({$user->userid}).");
     }
 
     /**

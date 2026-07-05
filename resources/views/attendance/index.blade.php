@@ -5,12 +5,18 @@
 @section('content')
     <div class="mb-6 flex items-center justify-between">
         <h1 class="text-2xl font-semibold">Attendance logs</h1>
-        <form method="POST" action="{{ route('attendance.sync') }}">
-            @csrf
-            <button class="rounded bg-indigo-600 px-4 py-2 text-sm font-medium text-white hover:bg-indigo-700">
-                Sync from device(s)
-            </button>
-        </form>
+        <div class="flex gap-2">
+            <a href="{{ route('attendance.create') }}"
+               class="rounded border border-gray-300 bg-white px-4 py-2 text-sm font-medium hover:bg-gray-50">
+                Add manual entry
+            </a>
+            <form method="POST" action="{{ route('attendance.sync') }}">
+                @csrf
+                <button class="rounded bg-indigo-600 px-4 py-2 text-sm font-medium text-white hover:bg-indigo-700">
+                    Sync from device(s)
+                </button>
+            </form>
+        </div>
     </div>
 
     <form method="GET" action="{{ route('attendance.index') }}"

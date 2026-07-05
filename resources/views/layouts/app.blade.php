@@ -11,7 +11,7 @@
         <div class="mx-auto flex max-w-6xl items-center gap-6 px-4 py-3">
             <a href="{{ route('dashboard') }}" class="text-lg font-semibold tracking-tight">ZKTeco Attendance</a>
             <div class="flex gap-1 text-sm">
-                @foreach (['dashboard' => 'Dashboard', 'devices.index' => 'Devices', 'attendance.index' => 'Attendance', 'settings.edit' => 'Settings'] as $route => $label)
+                @foreach (['dashboard' => 'Dashboard', 'devices.index' => 'Devices', 'users.index' => 'Users', 'attendance.index' => 'Attendance', 'settings.edit' => 'Settings'] as $route => $label)
                     <a href="{{ route($route) }}"
                        class="rounded px-3 py-1.5 {{ request()->routeIs(str_replace('.index', '.*', $route)) || request()->routeIs($route) ? 'bg-slate-600 font-medium' : 'hover:bg-slate-700' }}">
                         {{ $label }}
