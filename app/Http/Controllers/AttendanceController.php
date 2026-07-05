@@ -24,7 +24,7 @@ class AttendanceController extends Controller
         $logs = Attendance::with('device')
             ->leftJoin('device_users', function ($join) {
                 $join->on('device_users.device_id', '=', 'attendances.device_id')
-                    ->on('device_users.uid', '=', 'attendances.uid');
+                    ->on('device_users.userid', '=', 'attendances.userid');
             })
             ->select('attendances.*', 'device_users.name as user_name')
             ->when($filters['device_id'] ?? null, fn ($q, $id) => $q->where('attendances.device_id', $id))

@@ -72,6 +72,14 @@ class ZktecoService
                     ]
                 );
             }
+
+            // Drop rows for users no longer on the device (e.g. stale uids
+            // left behind by re-enrollment), so each userid maps to one user.
+            if ($users !== []) {
+                $device->users()
+                    ->whereNotIn('uid', array_map(fn ($u) => (int) $u['uid'], $users))
+                    ->delete();
+            }
         });
 
         return count($users);

@@ -53,7 +53,7 @@ class DashboardPushService
             $records = Attendance::with('device')
                 ->leftJoin('device_users', function ($join) {
                     $join->on('device_users.device_id', '=', 'attendances.device_id')
-                        ->on('device_users.uid', '=', 'attendances.uid');
+                        ->on('device_users.userid', '=', 'attendances.userid');
                 })
                 ->select('attendances.*', 'device_users.name as user_name')
                 ->whereNull('attendances.pushed_at')
