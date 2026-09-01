@@ -152,6 +152,11 @@ class ZktecoService
 
         $port = (int) ($device->port ?: 4370);
 
+        // The ZKTeco library blocks for 60s on its socket read, which is far
+        // too long for the unattended sync. Probe the host first so an offline
+        // device fails in a couple of seconds instead of stalling the run.
+        $this->assertReachable($device->ip, $port);
+
         $zk = new ZKTeco($device->ip, $port);
 
         if (! $zk->connect()) {
@@ -162,6 +167,39 @@ class ZktecoService
         }
 
         return $zk;
+    }
+
+    /**
+     * Cheap liveness probe before the slow UDP handshake.
+     *
+     * The device speaks UDP, which gives no connection signal, so this pings
+     * the host with a short-timeout ICMP echo. A host that does not answer is
+     * treated as unreachable; if ICMP is unavailable or blocked we say nothing
+     * and let the library's own handshake decide.
+     */
+    protected function assertReachable(string $ip, int $port): void
+    {
+        // Only meaningful for a literal IP on the local network.
+        if (filter_var($ip, FILTER_VALIDATE_IP) === false) {
+            return;
+        }
+
+        $timeoutMs = (int) config('zkteco.probe_timeout_ms', 2000);
+
+        if (windows_os()) {
+            $command = sprintf('ping -n 1 -w %d %s', $timeoutMs, escapeshellarg($ip));
+        } else {
+            $command = sprintf('ping -c 1 -W %d %s', max(1, (int) ceil($timeoutMs / 1000)), escapeshellarg($ip));
+        }
+
+        exec($command, $output, $status);
+
+        if ($status !== 0) {
+            throw new RuntimeException(
+                "Could not reach the device at {$ip}:{$port}. ".
+                'Check that it is powered on and on the same network.'
+            );
+        }
     }
 
     /**
