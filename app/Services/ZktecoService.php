@@ -5,12 +5,16 @@ namespace App\Services;
 use App\Models\Attendance;
 use App\Models\Device;
 use Illuminate\Support\Facades\DB;
+use Jmrashed\Zkteco\Lib\Helper\Util;
 use Jmrashed\Zkteco\Lib\ZKTeco;
 use RuntimeException;
 use Throwable;
 
 class ZktecoService
 {
+    /** Bytes per attendance record in the device's CMD_ATT_LOG_RRQ payload. */
+    protected const ATT_RECORD_SIZE = 40;
+
     /**
      * Test connectivity and read basic device info.
      *
@@ -97,7 +101,7 @@ class ZktecoService
 
         try {
             $zk->disableDevice();
-            $logs = $zk->getAttendance();
+            $logs = $this->readAttendance($zk);
         } finally {
             $zk->enableDevice();
             $zk->disconnect();
@@ -128,6 +132,75 @@ class ZktecoService
             'fetched' => count($logs),
             'new' => $device->attendances()->count() - $before,
         ];
+    }
+
+    /**
+     * Read and decode the attendance log straight from the device.
+     *
+     * The vendor library's own parser reads `state` and `type` from the wrong
+     * offsets: it treats the badge-id field as 9 bytes when the device sends
+     * 24, so it picks up `state` from inside the timestamp and `type` from the
+     * trailing reserved bytes. That is why every row came back as
+     * "Unknown (nnn)". This decodes the real 40-byte record layout:
+     *
+     *   0-1   uid (uint16, little endian)
+     *   2-25  userid, null padded
+     *   26    state  - verification method (0 password, 1 finger, 2 card)
+     *   27-30 timestamp (uint32, little endian, ZKTeco epoch encoding)
+     *   31    type   - punch direction (0 in, 1 out, 2/3 break, 4/5 overtime)
+     *   32-39 reserved
+     *
+     * @return array<int, array{uid: int, id: string, state: int, type: int, timestamp: string}>
+     */
+    protected function readAttendance(ZKTeco $zk): array
+    {
+        $zk->_section = __METHOD__;
+
+        $session = $zk->_command(Util::CMD_ATT_LOG_RRQ, '', Util::COMMAND_TYPE_DATA);
+
+        if ($session === false) {
+            return [];
+        }
+
+        $data = Util::recData($zk);
+
+        if (empty($data)) {
+            return [];
+        }
+
+        // The first 4 bytes are the record-set size header.
+        $data = substr($data, 4);
+
+        $logs = [];
+
+        foreach (str_split($data, self::ATT_RECORD_SIZE) as $record) {
+            if (strlen($record) < self::ATT_RECORD_SIZE) {
+                break;
+            }
+
+            $row = unpack('vuid/a24userid/Cstate/Vtimestamp/Ctype', $record);
+
+            if ($row === false) {
+                continue;
+            }
+
+            $userid = trim(str_replace("\0", '', $row['userid']));
+
+            // A blank badge id means padding past the end of the real records.
+            if ($userid === '') {
+                continue;
+            }
+
+            $logs[] = [
+                'uid' => (int) $row['uid'],
+                'id' => $userid,
+                'state' => (int) $row['state'],
+                'type' => (int) $row['type'],
+                'timestamp' => Util::decodeTime((int) $row['timestamp']),
+            ];
+        }
+
+        return $logs;
     }
 
     /**
