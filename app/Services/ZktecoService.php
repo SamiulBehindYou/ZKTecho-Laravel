@@ -15,6 +15,9 @@ class ZktecoService
     /** Bytes per attendance record in the device's CMD_ATT_LOG_RRQ payload. */
     protected const ATT_RECORD_SIZE = 40;
 
+    /** Leading bytes before the first record: 8-byte packet header + 2-byte size. */
+    protected const ATT_HEADER_SIZE = 10;
+
     /**
      * Test connectivity and read basic device info.
      *
@@ -168,8 +171,10 @@ class ZktecoService
             return [];
         }
 
-        // The first 4 bytes are the record-set size header.
-        $data = substr($data, 4);
+        // recData() hands back the first packet with its full 8-byte header
+        // intact, followed by a 2-byte record-set size field. Records start
+        // after those 10 bytes.
+        $data = substr($data, self::ATT_HEADER_SIZE);
 
         $logs = [];
 
