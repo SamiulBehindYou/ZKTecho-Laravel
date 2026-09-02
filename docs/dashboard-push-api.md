@@ -91,7 +91,7 @@ Authorization: Bearer <token>        (only if a token is configured)
 
 | Field     | Type   | Notes                                                                 |
 |-----------|--------|-----------------------------------------------------------------------|
-| `source`  | string | Identifies the local installation (configured in Settings). Useful if several offices push to the same dashboard. May be the app name if not configured. |
+| `source`  | string | A free-text label identifying the local installation (configured in Settings). Used for de-duplication (`source` + `local_id`) and logging. **Do not resolve it to a location** — the location comes from each record's `location_id`. |
 | `records` | array  | 1 to `batch_size` records (default 200, configurable up to 1000). Ordered oldest punch first. |
 
 ### Record object
@@ -102,10 +102,10 @@ Authorization: Bearer <token>        (only if a token is configured)
 | `device_serial` | string \| null  | Serial number of the ZKTeco device. Null if the device info was never read.  |
 | `device_name`   | string \| null  | Human-readable device name from the local app (e.g. "Main entrance").        |
 | `uid`           | integer         | Device-internal enrollment number. **Not stable** across re-enrollments — do not use it as a person identifier. |
-| `userid`        | string          | The employee's ID as enrolled on the device. **This is the stable person identifier.** |
+| `userid`        | string          | The employee's ID as enrolled on the fingerprint device. Stored for reference only — **do not use it to identify the employee** on your side; use `admin_id`. |
 | `user_name`     | string \| null  | Employee name from the device's user list. Null if the user was enrolled without a name or is no longer on the device. |
-| `location_id`   | integer         | The dashboard-side location this employee belongs to. Set per user in the local app's **Users** page. **Always present** — records whose user has no `location_id` are never sent. |
-| `admin_id`      | integer         | The dashboard-side admin this employee reports to. Set per user in the local app's **Users** page. **Always present** — records whose user has no `admin_id` are never sent. |
+| `location_id`   | integer         | **The dashboard's own location id** for this employee (on CRP: `training_locations.id`). Set per user in the local app's **Users** page. **Always present** — records whose user has no `location_id` are never sent. |
+| `admin_id`      | integer         | **The dashboard's own user id** for this employee (on CRP: `users.id`). This is the person identifier — join on this, not on `userid`. Set per user in the local app's **Users** page. **Always present** — records whose user has no `admin_id` are never sent. |
 | `state`         | integer         | Verification method — see table below.                                       |
 | `state_name`    | string          | Human-readable form of `state`.                                              |
 | `type`          | integer         | Punch type — see table below.                                                |
@@ -137,6 +137,26 @@ Unknown values may appear on some firmwares; store them as-is.
 ---
 
 ## 4. Delivery semantics — read this before implementing
+
+### Identify the employee by `admin_id`, never by `userid`
+
+`userid` is whatever number the employee is enrolled under on the fingerprint
+device. It is device-local, can be reassigned, and has no relationship to any id
+on your side — it is included for traceability only.
+
+`admin_id` is **your** user id, entered per employee in the local app, and is
+the field to join on:
+
+```php
+// correct
+$adminId = (int) $record['admin_id'];
+
+// wrong - userid is a device enrollment number, not your user id
+$adminId = (int) $record['userid'];
+```
+
+The same applies to `location_id` versus `source`: `location_id` is your
+location's primary key; `source` is only a label.
 
 ### Records are withheld until they are fully identified
 
@@ -245,10 +265,10 @@ Route::post('/attendance', function (Request $request) {
                 'local_id' => $r['local_id'],
             ],
             [
-                'employee_id' => $r['userid'],
+                'employee_id' => $r['admin_id'],      // your users.id
                 'employee_name' => $r['user_name'] ?? null,
-                'location_id' => $r['location_id'],
-                'admin_id' => $r['admin_id'],
+                'location_id' => $r['location_id'],   // your locations.id
+                'device_userid' => $r['userid'],      // reference only
                 'device_serial' => $r['device_serial'] ?? null,
                 'punch_type' => $r['type'],
                 'verification' => $r['state'],
@@ -305,6 +325,7 @@ a duplicate — that's the de-duplication requirement from section 4.
 - [ ] `ping: true` requests answered with 2xx and no side effects
 - [ ] Records upserted with a unique key (`source` + `local_id` recommended)
 - [ ] `location_id` and `admin_id` stored against each record
+- [ ] Employees resolved via `admin_id` (**not** `userid`) and locations via `location_id` (**not** `source`)
 - [ ] Location/admin IDs shared with the local app operator so they can be entered per user
 - [ ] Duplicate deliveries return 2xx without creating duplicates
 - [ ] Responds within 30 seconds (ideally < 2 s)

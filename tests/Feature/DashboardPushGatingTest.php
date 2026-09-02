@@ -144,6 +144,48 @@ class DashboardPushGatingTest extends TestCase
         $this->assertNotNull($punch->fresh()->pushed_at);
     }
 
+    /**
+     * The dashboard identifies the employee by admin_id (its own users.id),
+     * never by userid (the fingerprint device's enrollment number). These
+     * must stay distinct on the wire.
+     */
+    public function test_admin_id_is_sent_independently_of_the_device_userid(): void
+    {
+        Http::fake(['*' => Http::response(['ok' => true])]);
+
+        $user = $this->makeUser([
+            'userid' => '1042',      // enrolled on the device
+            'admin_id' => 7,         // the dashboard's users.id
+            'location_id' => 3,
+        ]);
+        $this->makePunch($user);
+
+        $this->assertSame(1, app(DashboardPushService::class)->pushPending());
+
+        Http::assertSent(function ($request) {
+            $record = $request->data()['records'][0];
+
+            return $record['userid'] === '1042'
+                && $record['admin_id'] === 7
+                && $record['location_id'] === 3;
+        });
+    }
+
+    public function test_location_and_admin_are_never_sent_as_zero(): void
+    {
+        Http::fake(['*' => Http::response(['ok' => true])]);
+
+        $this->makePunch($this->makeUser(['location_id' => 3, 'admin_id' => 7]));
+
+        app(DashboardPushService::class)->pushPending();
+
+        Http::assertSent(function ($request) {
+            $record = $request->data()['records'][0];
+
+            return $record['location_id'] > 0 && $record['admin_id'] > 0;
+        });
+    }
+
     public function test_users_page_saves_the_ids_for_one_user(): void
     {
         $user = $this->makeUser();
