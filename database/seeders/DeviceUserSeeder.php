@@ -34,6 +34,10 @@ class DeviceUserSeeder extends Seeder
                 'name' => fake()->name(),
                 'role' => $i === 0 ? DeviceUser::ROLE_ADMIN : DeviceUser::ROLE_USER,
                 'cardno' => fake()->boolean(70) ? (string) fake()->numberBetween(1000000, 9999999) : null,
+                // Left unset for a few users so the "on hold, not pushed"
+                // state is visible on the Users page out of the box.
+                'location_id' => $i < 15 ? fake()->numberBetween(1, 3) : null,
+                'admin_id' => $i < 15 ? fake()->numberBetween(1, 5) : null,
             ]);
         }
     }

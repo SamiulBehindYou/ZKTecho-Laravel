@@ -15,6 +15,8 @@ Route::get('devices/{device}/users', [DeviceController::class, 'users'])->name('
 Route::post('devices/{device}/sync-users', [DeviceController::class, 'syncUsers'])->name('devices.sync-users');
 
 Route::get('users', [UserController::class, 'index'])->name('users.index');
+Route::put('users/bulk', [UserController::class, 'bulkUpdate'])->name('users.bulk-update');
+Route::put('users/{user}', [UserController::class, 'update'])->name('users.update');
 
 Route::get('attendance', [AttendanceController::class, 'index'])->name('attendance.index');
 Route::get('attendance/create', [AttendanceController::class, 'create'])->name('attendance.create');

@@ -16,6 +16,8 @@ class SettingsController extends Controller
             'settings' => Setting::allValues(),
             'pendingCount' => $pusher->pendingCount(),
             'pushedCount' => Attendance::whereNotNull('pushed_at')->count(),
+            'blockedCount' => $pusher->blockedCount(),
+            'blockedUsers' => $pusher->blockedUsers(),
         ]);
     }
 
@@ -70,7 +72,11 @@ class SettingsController extends Controller
         $pending = $pusher->pendingCount();
 
         if ($pending === 0) {
-            return back()->with('success', 'Nothing to push — all records are already on the dashboard.');
+            $blocked = $pusher->blockedCount();
+
+            return $blocked > 0
+                ? back()->with('error', "{$blocked} record(s) are on hold because their users have no location ID / admin ID. Set those on the Users page first.")
+                : back()->with('success', 'Nothing to push — all records are already on the dashboard.');
         }
 
         PushAttendanceToDashboard::dispatch();

@@ -3,6 +3,7 @@
 namespace App\Services;
 
 use App\Models\Attendance;
+use App\Models\DeviceUser;
 use App\Models\Setting;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Http;
@@ -28,9 +29,63 @@ class DashboardPushService
         return Setting::get('push.url') !== null;
     }
 
+    /**
+     * Unpushed records that are ready to send — their user has both a
+     * location_id and an admin_id.
+     */
     public function pendingCount(): int
     {
-        return Attendance::whereNull('pushed_at')->count();
+        return $this->pendingQuery()->whereNotNull('device_users.location_id')
+            ->whereNotNull('device_users.admin_id')
+            ->count();
+    }
+
+    /**
+     * Unpushed records held back because their device user is missing a
+     * location_id and/or an admin_id. These are never sent until filled in.
+     */
+    public function blockedCount(): int
+    {
+        return $this->pendingQuery()->where(function ($q) {
+            $q->whereNull('device_users.location_id')
+                ->orWhereNull('device_users.admin_id');
+        })->count();
+    }
+
+    /**
+     * Device users that have at least one unpushed record but are still
+     * missing a location_id and/or admin_id.
+     *
+     * @return Collection<int, DeviceUser>
+     */
+    public function blockedUsers(): Collection
+    {
+        return DeviceUser::with('device')
+            ->incomplete()
+            ->whereExists(function ($query) {
+                $query->from('attendances')
+                    ->selectRaw('1')
+                    ->whereColumn('attendances.device_id', 'device_users.device_id')
+                    ->whereColumn('attendances.userid', 'device_users.userid')
+                    ->whereNull('attendances.pushed_at');
+            })
+            ->orderBy('name')
+            ->orderBy('userid')
+            ->get();
+    }
+
+    /**
+     * Unpushed attendance joined to its device user, which carries the
+     * location_id / admin_id the dashboard needs.
+     */
+    protected function pendingQuery(): \Illuminate\Database\Eloquent\Builder
+    {
+        return Attendance::query()
+            ->leftJoin('device_users', function ($join) {
+                $join->on('device_users.device_id', '=', 'attendances.device_id')
+                    ->on('device_users.userid', '=', 'attendances.userid');
+            })
+            ->whereNull('attendances.pushed_at');
     }
 
     /**
@@ -50,13 +105,18 @@ class DashboardPushService
         $pushed = 0;
 
         while (true) {
-            $records = Attendance::with('device')
-                ->leftJoin('device_users', function ($join) {
-                    $join->on('device_users.device_id', '=', 'attendances.device_id')
-                        ->on('device_users.userid', '=', 'attendances.userid');
-                })
-                ->select('attendances.*', 'device_users.name as user_name')
-                ->whereNull('attendances.pushed_at')
+            // Records whose user has no location_id / admin_id are skipped
+            // entirely — they stay unpushed until someone fills those in.
+            $records = $this->pendingQuery()
+                ->with('device')
+                ->select(
+                    'attendances.*',
+                    'device_users.name as user_name',
+                    'device_users.location_id as location_id',
+                    'device_users.admin_id as admin_id',
+                )
+                ->whereNotNull('device_users.location_id')
+                ->whereNotNull('device_users.admin_id')
                 ->orderBy('attendances.punched_at')
                 ->orderBy('attendances.id')
                 ->limit($batchSize)
@@ -122,6 +182,8 @@ class DashboardPushService
                 'uid' => $a->uid,
                 'userid' => $a->userid,
                 'user_name' => $a->user_name,
+                'location_id' => (int) $a->location_id,
+                'admin_id' => (int) $a->admin_id,
                 'state' => (int) $a->state,
                 'state_name' => $a->state_name,
                 'type' => (int) $a->type,

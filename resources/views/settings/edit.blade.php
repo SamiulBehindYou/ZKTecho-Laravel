@@ -87,6 +87,11 @@
                     <code>userid</code> + <code>punched_at</code> + <code>type</code> (or <code>local_id</code>)
                     to de-duplicate on the dashboard side, and respond with any 2xx status to acknowledge.
                 </p>
+                <p class="mb-3 text-sm text-gray-500">
+                    <code>location_id</code> and <code>admin_id</code> come from each user's row on the
+                    <a href="{{ route('users.index') }}" class="text-indigo-600 hover:underline">Users</a> page.
+                    Records whose user is missing either one are never sent.
+                </p>
 <pre class="overflow-x-auto rounded bg-slate-800 p-4 text-xs leading-relaxed text-slate-100">{
   "source": "Head office",
   "records": [
@@ -97,6 +102,8 @@
       "uid": 12,
       "userid": "1042",
       "user_name": "Jane Doe",
+      "location_id": 3,
+      "admin_id": 7,
       "state": 1,
       "state_name": "Fingerprint",
       "type": 0,
@@ -122,6 +129,12 @@
                         </dd>
                     </div>
                     <div class="flex justify-between">
+                        <dt class="text-gray-500">On hold (no location/admin)</dt>
+                        <dd class="font-medium {{ $blockedCount > 0 ? 'text-amber-600' : 'text-gray-900' }}">
+                            {{ number_format($blockedCount) }}
+                        </dd>
+                    </div>
+                    <div class="flex justify-between">
                         <dt class="text-gray-500">Pushed records</dt>
                         <dd class="font-medium">{{ number_format($pushedCount) }}</dd>
                     </div>
@@ -130,6 +143,27 @@
                         <dd class="font-medium">{{ $settings['push.last_success_at'] ?? 'Never' }}</dd>
                     </div>
                 </dl>
+
+                @if ($blockedCount > 0)
+                    <div class="mt-4 rounded border border-amber-200 bg-amber-50 p-3 text-xs text-amber-900">
+                        <p class="font-semibold">{{ number_format($blockedCount) }} record(s) are not being pushed.</p>
+                        <p class="mt-1">These users need a location ID and an admin ID:</p>
+                        <ul class="mt-1 list-inside list-disc">
+                            @foreach ($blockedUsers->take(10) as $blocked)
+                                <li>{{ $blocked->name ?: $blocked->userid }} ({{ $blocked->userid }}) —
+                                    missing {{ collect(['location ID' => $blocked->location_id, 'admin ID' => $blocked->admin_id])
+                                        ->filter(fn ($v) => $v === null)->keys()->join(' and ') }}
+                                </li>
+                            @endforeach
+                        </ul>
+                        @if ($blockedUsers->count() > 10)
+                            <p class="mt-1">…and {{ $blockedUsers->count() - 10 }} more.</p>
+                        @endif
+                        <a href="{{ route('users.index', ['incomplete' => 1]) }}" class="mt-2 inline-block font-medium underline">
+                            Fill these in on the Users page
+                        </a>
+                    </div>
+                @endif
 
                 @if (!empty($settings['push.last_error']))
                     <div class="mt-4 rounded border border-red-200 bg-red-50 p-3 text-xs text-red-800">

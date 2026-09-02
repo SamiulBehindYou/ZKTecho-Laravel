@@ -63,6 +63,8 @@ entry, and by the retry scheduler.
       "uid": 12,
       "userid": "1042",
       "user_name": "Jane Doe",
+      "location_id": 3,
+      "admin_id": 7,
       "state": 1,
       "state_name": "Fingerprint",
       "type": 0,
@@ -102,6 +104,8 @@ Authorization: Bearer <token>        (only if a token is configured)
 | `uid`           | integer         | Device-internal enrollment number. **Not stable** across re-enrollments — do not use it as a person identifier. |
 | `userid`        | string          | The employee's ID as enrolled on the device. **This is the stable person identifier.** |
 | `user_name`     | string \| null  | Employee name from the device's user list. Null if the user was enrolled without a name or is no longer on the device. |
+| `location_id`   | integer         | The dashboard-side location this employee belongs to. Set per user in the local app's **Users** page. **Always present** — records whose user has no `location_id` are never sent. |
+| `admin_id`      | integer         | The dashboard-side admin this employee reports to. Set per user in the local app's **Users** page. **Always present** — records whose user has no `admin_id` are never sent. |
 | `state`         | integer         | Verification method — see table below.                                       |
 | `state_name`    | string          | Human-readable form of `state`.                                              |
 | `type`          | integer         | Punch type — see table below.                                                |
@@ -133,6 +137,22 @@ Unknown values may appear on some firmwares; store them as-is.
 ---
 
 ## 4. Delivery semantics — read this before implementing
+
+### Records are withheld until they are fully identified
+
+Every employee in the local app must be given a `location_id` and an `admin_id`
+(entered on the local app's **Users** page) before any of their punches are
+sent. Punches for a user missing either value are still captured and stored
+locally, but they are **not** included in any batch — they stay pending until an
+operator fills the values in, and are then delivered on the next push.
+
+Consequences for your endpoint:
+
+- `location_id` and `admin_id` are **always present and non-null** on every
+  record you receive; you can treat them as required.
+- After an operator fills in a previously-missing user, expect a backlog of that
+  user's older punches to arrive at once. As always, use `punched_at`, not
+  arrival time.
 
 ### At-least-once delivery: you MUST de-duplicate
 
@@ -211,6 +231,8 @@ Route::post('/attendance', function (Request $request) {
         'records' => ['required', 'array'],
         'records.*.local_id' => ['required', 'integer'],
         'records.*.userid' => ['required', 'string'],
+        'records.*.location_id' => ['required', 'integer'],
+        'records.*.admin_id' => ['required', 'integer'],
         'records.*.punched_at' => ['required', 'date'],
         'records.*.type' => ['required', 'integer'],
         'records.*.state' => ['required', 'integer'],
@@ -225,6 +247,8 @@ Route::post('/attendance', function (Request $request) {
             [
                 'employee_id' => $r['userid'],
                 'employee_name' => $r['user_name'] ?? null,
+                'location_id' => $r['location_id'],
+                'admin_id' => $r['admin_id'],
                 'device_serial' => $r['device_serial'] ?? null,
                 'punch_type' => $r['type'],
                 'verification' => $r['state'],
@@ -258,6 +282,8 @@ curl -X POST https://dashboard.example.com/api/attendance \
       "uid": 1,
       "userid": "1001",
       "user_name": "Test User",
+      "location_id": 3,
+      "admin_id": 7,
       "state": 1,
       "state_name": "Fingerprint",
       "type": 0,
@@ -278,6 +304,8 @@ a duplicate — that's the de-duplication requirement from section 4.
 - [ ] Bearer token validated; `401` on mismatch
 - [ ] `ping: true` requests answered with 2xx and no side effects
 - [ ] Records upserted with a unique key (`source` + `local_id` recommended)
+- [ ] `location_id` and `admin_id` stored against each record
+- [ ] Location/admin IDs shared with the local app operator so they can be entered per user
 - [ ] Duplicate deliveries return 2xx without creating duplicates
 - [ ] Responds within 30 seconds (ideally < 2 s)
 - [ ] Token + final URL shared with the local app operator (entered in Settings)
